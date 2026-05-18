@@ -1,0 +1,160 @@
+# 工作流 Pipeline 定义
+
+# 状态定义和流转规则
+
+states:
+  idle:
+    description: 项目刚创建，等待需求输入
+    next: [requirements]
+    agent: presales
+    trigger: 客户需求提交
+
+  requirements:
+    description: 售前Agent正在处理需求
+    agent: presales
+    next: [prd]
+    trigger: requirements.md 产出完成
+    output_check: 01_requirements/requirements.md
+
+  prd:
+    description: 产品Agent正在编写PRD
+    agent: product
+    next: [prd_review]
+    trigger: prd.md + prototype.md 产出完成
+    output_check:
+      - 02_prd/prd.md
+      - 02_prd/prototype.md
+
+  prd_review:
+    description: PRD评审
+    type: review_gate
+    reviewers: [product, architect]
+    next_approved: [design]
+    next_rejected: [prd]
+    output: reviews/prd_review.md
+
+  design:
+    description: 设计Agent正在编写设计规格
+    agent: design
+    next: [design_review]
+    trigger: design_spec.md 产出完成
+    output_check: 03_design/design_spec.md
+
+  design_review:
+    description: 设计评审
+    type: review_gate
+    reviewers: [design, product]
+    next_approved: [architecture]
+    next_rejected: [design]
+    output: reviews/design_review.md
+
+  architecture:
+    description: 架构师Agent正在进行系统设计
+    agent: architect
+    next: [arch_review]
+    trigger: architecture.md + api_spec.md 产出完成
+    output_check:
+      - 04_architecture/architecture.md
+      - 04_architecture/api_spec.md
+
+  arch_review:
+    description: 架构评审
+    type: review_gate
+    reviewers: [architect]
+    next_approved: [development]
+    next_rejected: [architecture]
+    output: reviews/arch_review.md
+
+  development:
+    description: 前端+后端并行开发
+    agents: [frontend, backend]  # 并行
+    type: parallel
+    next: [test_case]
+    trigger: 前端代码 + 后端代码 产出完成
+    output_check:
+      - 05_frontend/
+      - 06_backend/
+
+  test_case:
+    description: 测试Agent正在编写测试用例
+    agent: qa
+    next: [test_review]
+    trigger: test_cases.md 产出完成
+    output_check: 07_test/test_cases.md
+
+  test_review:
+    description: 测试用例评审
+    type: review_gate
+    reviewers: [qa, product]
+    next_approved: [test_execution]
+    next_rejected: [test_case]
+    output: reviews/test_review.md
+
+  test_execution:
+    description: 测试Agent正在执行测试
+    agent: qa
+    next: [delivery]
+    trigger: test_report.md 产出完成
+    output_check: 07_test/test_report.md
+
+  delivery:
+    description: 交付完成
+    type: terminal
+
+
+# 评审门定义
+review_gates:
+  prd_review:
+    name: PRD评审
+    description: 产品需求文档评审，确保需求清晰、完整、可执行
+    reviewers:
+      - role: product
+        focus: 需求完整性、用户故事合理性
+      - role: architect
+        focus: 技术可行性、实现复杂度
+    checklist:
+      - 用户故事是否完整覆盖需求
+      - 验收标准是否明确可测
+      - 非功能需求是否充分
+      - 是否存在技术实现风险
+
+  design_review:
+    name: 设计评审
+    description: UI/UX设计规格评审
+    reviewers:
+      - role: design
+        focus: 视觉一致性、设计规范合理性
+      - role: product
+        focus: 是否符合产品意图、用户体验
+    checklist:
+      - 设计风格是否一致
+      - 交互流程是否符合产品逻辑
+      - 信息层级是否清晰
+      - 是否考虑响应式适配
+
+  arch_review:
+    name: 架构评审
+    description: 系统架构设计评审
+    reviewers:
+      - role: architect
+        focus: 架构合理性、技术选型、扩展性
+    checklist:
+      - 架构是否支撑业务需求
+      - 技术选型是否合理
+      - API设计是否规范
+      - 是否考虑性能和安全
+      - 扩展性是否足够
+
+  test_review:
+    name: 用例评审
+    description: 测试用例评审
+    reviewers:
+      - role: qa
+        focus: 用例覆盖度、边界场景
+      - role: product
+        focus: 是否覆盖产品需求
+    checklist:
+      - 功能测试是否覆盖所有需求
+      - 边界值和异常场景是否充分
+      - 用例优先级是否合理
+      - 预期结果是否明确

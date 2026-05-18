@@ -1,0 +1,62 @@
+{
+  "project_name": "demo-project",
+  "created_at": "2026-05-14T00:40:22.168894",
+  "current_state": "idle",
+  "states_history": [],
+  "artifacts": {
+    "requirements": {
+      "status": "pending",
+      "path": "01_requirements/requirements.md"
+    },
+    "prd": {
+      "status": "pending",
+      "path": "02_prd/prd.md"
+    },
+    "prototype": {
+      "status": "pending",
+      "path": "02_prd/prototype.md"
+    },
+    "design_spec": {
+      "status": "pending",
+      "path": "03_design/design_spec.md"
+    },
+    "architecture": {
+      "status": "pending",
+      "path": "04_architecture/architecture.md"
+    },
+    "api_spec": {
+      "status": "pending",
+      "path": "04_architecture/api_spec.md"
+    },
+    "frontend": {
+      "status": "pending",
+      "path": "05_frontend/"
+    },
+    "backend": {
+      "status": "pending",
+      "path": "06_backend/"
+    },
+    "test_cases": {
+      "status": "pending",
+      "path": "07_test/test_cases.md"
+    },
+    "test_report": {
+      "status": "pending",
+      "path": "07_test/test_report.md"
+    }
+  },
+  "reviews": {
+    "prd_review": {
+      "status": "pending"
+    },
+    "design_review": {
+      "status": "pending"
+    },
+    "arch_review": {
+      "status": "pending"
+    },
+    "test_review": {
+      "status": "pending"
+    }
+  }
+}

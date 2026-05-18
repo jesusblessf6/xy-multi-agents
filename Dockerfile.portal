@@ -1,0 +1,12 @@
+FROM python:3.12-slim
+WORKDIR /app
+COPY pyproject.toml .
+RUN pip install --no-cache-dir -e .
+COPY src/xy_core/ src/xy_core/
+COPY portal/server/ portal/server/
+COPY agents/ agents/
+COPY config/ config/
+COPY templates/ templates/
+RUN pip install --no-cache-dir -r portal/server/requirements.txt
+ENV PYTHONPATH=/app
+EXPOSE 8001
