@@ -1,20 +1,46 @@
 # 工作流 Pipeline 定义
-
-# 状态定义和流转规则
+#
+# 配置原则:
+#   Pipeline = 结构 (谁、何时、流向)
+#   Agent skill = 行为 (怎么评、评什么)
+#   Review gate 机制 (approve/reject、多人决议) 留在代码里
+#
+# gate_type:
+#   human_audit — 人审，对应角色的人审核Agent产出，阻塞等待人工操作
+#   agent_review — Agent评，Agent读取skill执行评审，系统自动派发
 
 states:
   idle:
-    description: 项目刚创建，等待需求输入
+    description: 项目刚创建，原始需求已录入，等待售前Agent处理
     next: [requirements]
     agent: presales
     trigger: 客户需求提交
 
   requirements:
-    description: 售前Agent正在处理需求
+    description: 售前Agent正在将原始需求结构化为标准化需求文档
     agent: presales
-    next: [prd]
+    next: [req_audit]
     trigger: requirements.md 产出完成
     output_check: 01_requirements/requirements.md
+
+  req_audit:
+    description: 需求审核 — 售前角色的人审核Agent产出，确认理解正确
+    type: review_gate
+    gate_type: human_audit
+    reviewers: [presales]
+    next_approved: [req_feasibility]
+    next_rejected: [requirements]
+    output: reviews/req_audit.md
+
+  req_feasibility:
+    description: 需求可行性评审 — 产品和架构Agent评估客户预期成本下能否实现
+    type: review_gate
+    gate_type: agent_review
+    reviewers: [product, architect]
+    review_input: 01_requirements/requirements.md
+    next_approved: [prd]
+    next_rejected: [requirements]
+    output: reviews/req_feasibility.md
 
   prd:
     description: 产品Agent正在编写PRD
@@ -28,7 +54,9 @@ states:
   prd_review:
     description: PRD评审
     type: review_gate
+    gate_type: agent_review
     reviewers: [product, architect]
+    review_input: 02_prd/prd.md
     next_approved: [design]
     next_rejected: [prd]
     output: reviews/prd_review.md
@@ -43,7 +71,9 @@ states:
   design_review:
     description: 设计评审
     type: review_gate
+    gate_type: agent_review
     reviewers: [design, product]
+    review_input: 03_design/design_spec.md
     next_approved: [architecture]
     next_rejected: [design]
     output: reviews/design_review.md
@@ -60,14 +90,16 @@ states:
   arch_review:
     description: 架构评审
     type: review_gate
+    gate_type: agent_review
     reviewers: [architect]
+    review_input: 04_architecture/architecture.md
     next_approved: [development]
     next_rejected: [architecture]
     output: reviews/arch_review.md
 
   development:
     description: 前端+后端并行开发
-    agents: [frontend, backend]  # 并行
+    agents: [frontend, backend]
     type: parallel
     next: [test_case]
     trigger: 前端代码 + 后端代码 产出完成
@@ -85,7 +117,9 @@ states:
   test_review:
     description: 测试用例评审
     type: review_gate
+    gate_type: agent_review
     reviewers: [qa, product]
+    review_input: 07_test/test_cases.md
     next_approved: [test_execution]
     next_rejected: [test_case]
     output: reviews/test_review.md
@@ -102,59 +136,61 @@ states:
     type: terminal
 
 
-# 评审门定义
+# 评审门定义 — 仅结构信息，评审内容在 Agent skill 文件中
 review_gates:
+  req_audit:
+    name: 需求审核
+    description: 售前角色的人审核售前Agent的需求产出，确认Agent对需求理解正确
+    gate_type: human_audit
+    reviewers:
+      - role: presales
+    checklist:
+      - Agent是否正确理解了客户的核心诉求
+      - 功能需求是否完整，有无遗漏
+      - 非功能需求是否合理
+      - 待澄清问题是否抓住了关键模糊点
+      - 需求文档结构是否规范
+
+  req_feasibility:
+    name: 需求可行性评审
+    description: 产品和架构Agent评估需求在客户预期成本下能否实现
+    gate_type: agent_review
+    review_input: 01_requirements/requirements.md
+    reviewers:
+      - role: product
+      - role: architect
+
   prd_review:
     name: PRD评审
     description: 产品需求文档评审，确保需求清晰、完整、可执行
+    gate_type: agent_review
+    review_input: 02_prd/prd.md
     reviewers:
       - role: product
-        focus: 需求完整性、用户故事合理性
       - role: architect
-        focus: 技术可行性、实现复杂度
-    checklist:
-      - 用户故事是否完整覆盖需求
-      - 验收标准是否明确可测
-      - 非功能需求是否充分
-      - 是否存在技术实现风险
 
   design_review:
     name: 设计评审
     description: UI/UX设计规格评审
+    gate_type: agent_review
+    review_input: 03_design/design_spec.md
     reviewers:
       - role: design
-        focus: 视觉一致性、设计规范合理性
       - role: product
-        focus: 是否符合产品意图、用户体验
-    checklist:
-      - 设计风格是否一致
-      - 交互流程是否符合产品逻辑
-      - 信息层级是否清晰
-      - 是否考虑响应式适配
 
   arch_review:
     name: 架构评审
     description: 系统架构设计评审
+    gate_type: agent_review
+    review_input: 04_architecture/architecture.md
     reviewers:
       - role: architect
-        focus: 架构合理性、技术选型、扩展性
-    checklist:
-      - 架构是否支撑业务需求
-      - 技术选型是否合理
-      - API设计是否规范
-      - 是否考虑性能和安全
-      - 扩展性是否足够
 
   test_review:
     name: 用例评审
     description: 测试用例评审
+    gate_type: agent_review
+    review_input: 07_test/test_cases.md
     reviewers:
       - role: qa
-        focus: 用例覆盖度、边界场景
       - role: product
-        focus: 是否覆盖产品需求
-    checklist:
-      - 功能测试是否覆盖所有需求
-      - 边界值和异常场景是否充分
-      - 用例优先级是否合理
-      - 预期结果是否明确

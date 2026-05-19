@@ -24,8 +24,6 @@ output_dir: 05_frontend
 skills_dir: agents/frontend/skills
 rag_dir: agents/frontend/rag
 
-review_gate: none  # 前端产出由测试Agent验证
-
 prompt_template: |
   你是一位资深前端开发工程师。你的任务是根据架构设计、设计规格和API规范实现前端代码。
 

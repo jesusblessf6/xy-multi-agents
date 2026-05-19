@@ -38,6 +38,7 @@ def seed():
 
     # 创建示例角色用户
     demo_users = [
+        ("presales_user", "售前顾问", ["presales"]),
         ("product_user", "产品经理", ["product"]),
         ("architect_user", "架构师", ["architect"]),
         ("design_user", "设计师", ["design"]),

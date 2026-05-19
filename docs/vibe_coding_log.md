@@ -151,3 +151,43 @@
 - 重写 README.md 部署章节：本地开发(5步)、Docker Compose(5步+常用命令)、生产部署(架构+步骤+Nginx示例+安全注意事项)
 
 ---
+
+### Session: 2025-05-19
+
+**User Prompt:**
+> 售前agent的输入渠道是什么样的；售前agent输出的需求需要售前角色的人审核，另外需要让产品和架构进行评审，评估可行性（客户预期成本下能否实现）
+
+**AI Action:**
+- 修正售前Agent输入流程：`create_with_requirement()` 不再跳过Agent，原始需求存入 `00_raw_input/raw_requirement.md`，项目保持 `idle` 状态
+- 新增两个评审门：`req_audit`(人审，presales角色) → `req_feasibility`(Agent评，product+architect)，串行执行
+- 更新 `config/pipeline.yaml`：15个状态，6个评审门（+req_audit, req_feasibility）
+- 更新 `agents/presales/agent.yaml`：inputs 指向 00_raw_input/，review_gate 改为两阶段
+- 更新 `templates/project/state.json`：新增 raw_requirement artifact 和两个新评审门
+- 创建 `templates/project/00_raw_input/` 目录
+- 添加 `presales_user` 种子用户
+- Console reviews API：评审通过后自动为下一个评审门创建记录
+- CLI `cmd_advance`：idle 状态检查原始需求是否存在
+- Portal API：提交需求后状态返回 idle
+- 更新测试：44个测试全部通过
+- 更新 `docs/AGENT_RESPONSIBILITIES.md`、`CLAUDE.md`、`README.md`
+
+---
+
+### Session: 2025-05-19 (2)
+
+**User Prompt:**
+> 流程设计尽量通用，减少硬编码，通过配置完成。审核和评审是Agent的两个动作，可以抽象出来。评审的具体内容通过skill/rag/sop配置，不要写死在代码里。
+
+**AI Action:**
+- `types.py`: PipelineStateConfig 新增 `gate_type`/`review_input`，ReviewGateDef 新增 `gate_type`/`review_input`，新增 `AgentReviewResult` 模型，ReviewerDecision 新增 `decision_type`/`review_result`
+- `config/pipeline.yaml`: 所有 review_gate 状态加 gate_type (human_audit/agent_review)，agent_review 加 review_input，review_gates 段落去掉 checklist/focus (仅人审门 req_audit 保留 checklist)
+- `state_machine.py`: interrupt_points 仅含 human_audit 门，新增 get_gate_type/is_human_audit/is_agent_review/get_review_input
+- `review_gate.py`: 新增 submit_agent_review() 和 parse_agent_review_output()，更新 _generate_md 区分渲染人审和Agent评结果
+- `agent_executor.py`: 新增 build_review_prompt() 和 build_review_delegate_request()
+- 创建 9 个评审 skill 文件: product(3个), architect(3个), design(1个), qa(1个), product 有 3 个(含 design_review 和 test_review)
+- 所有 agent.yaml 删除 review_gate 字段，pipeline.yaml 成为评审门唯一真相源
+- Console reviews API: submit_review 拒绝 agent_review 门，新增 trigger-agent-review 端点，ReviewDetail 返回 gate_type
+- Portal pipeline API: 返回 gate_type 字段
+- 57 个测试全部通过（+13 新测试：gate_type、submit_agent_review、parse_agent_review_output、build_review_prompt、AgentReviewResult）
+
+---

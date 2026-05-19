@@ -1,0 +1,101 @@
+{
+  "project_name": "trans-ec0b31e1",
+  "created_at": "2026-05-19T16:05:38.655437",
+  "current_state": "requirements",
+  "states_history": [
+    {
+      "from_state": "idle",
+      "to_state": "requirements",
+      "timestamp": "2026-05-19T16:05:38.655569"
+    }
+  ],
+  "artifacts": {
+    "raw_requirement": {
+      "status": "pending",
+      "path": "00_raw_input/raw_requirement.md",
+      "produced_by": ""
+    },
+    "requirements": {
+      "status": "pending",
+      "path": "01_requirements/requirements.md",
+      "produced_by": ""
+    },
+    "prd": {
+      "status": "pending",
+      "path": "02_prd/prd.md",
+      "produced_by": ""
+    },
+    "prototype": {
+      "status": "pending",
+      "path": "02_prd/prototype.md",
+      "produced_by": ""
+    },
+    "design_spec": {
+      "status": "pending",
+      "path": "03_design/design_spec.md",
+      "produced_by": ""
+    },
+    "architecture": {
+      "status": "pending",
+      "path": "04_architecture/architecture.md",
+      "produced_by": ""
+    },
+    "api_spec": {
+      "status": "pending",
+      "path": "04_architecture/api_spec.md",
+      "produced_by": ""
+    },
+    "frontend": {
+      "status": "pending",
+      "path": "05_frontend/",
+      "produced_by": ""
+    },
+    "backend": {
+      "status": "pending",
+      "path": "06_backend/",
+      "produced_by": ""
+    },
+    "test_cases": {
+      "status": "pending",
+      "path": "07_test/test_cases.md",
+      "produced_by": ""
+    },
+    "test_report": {
+      "status": "pending",
+      "path": "07_test/test_report.md",
+      "produced_by": ""
+    }
+  },
+  "reviews": {
+    "req_audit": {
+      "status": "pending",
+      "comments": "",
+      "timestamp": ""
+    },
+    "req_feasibility": {
+      "status": "pending",
+      "comments": "",
+      "timestamp": ""
+    },
+    "prd_review": {
+      "status": "pending",
+      "comments": "",
+      "timestamp": ""
+    },
+    "design_review": {
+      "status": "pending",
+      "comments": "",
+      "timestamp": ""
+    },
+    "arch_review": {
+      "status": "pending",
+      "comments": "",
+      "timestamp": ""
+    },
+    "test_review": {
+      "status": "pending",
+      "comments": "",
+      "timestamp": ""
+    }
+  }
+}

@@ -4,6 +4,7 @@
   "current_state": "idle",
   "states_history": [],
   "artifacts": {
+    "raw_requirement": {"status": "pending", "path": "00_raw_input/raw_requirement.md"},
     "requirements": {"status": "pending", "path": "01_requirements/requirements.md"},
     "prd": {"status": "pending", "path": "02_prd/prd.md"},
     "prototype": {"status": "pending", "path": "02_prd/prototype.md"},
@@ -16,6 +17,8 @@
     "test_report": {"status": "pending", "path": "07_test/test_report.md"}
   },
   "reviews": {
+    "req_audit": {"status": "pending"},
+    "req_feasibility": {"status": "pending"},
     "prd_review": {"status": "pending"},
     "design_review": {"status": "pending"},
     "arch_review": {"status": "pending"},

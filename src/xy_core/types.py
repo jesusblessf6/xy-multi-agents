@@ -54,6 +54,7 @@ class ProjectState(BaseModel):
 class PipelineStateConfig(BaseModel):
     description: str = ""
     type: str = "agent_execution"
+    gate_type: Optional[str] = None  # "human_audit" | "agent_review"，仅 type=review_gate 时有效
     agent: Optional[str] = None
     agents: Optional[list[str]] = None
     next: list[str] = []
@@ -62,6 +63,7 @@ class PipelineStateConfig(BaseModel):
     trigger: str = ""
     output_check: list[str] = []
     reviewers: list[str] = []
+    review_input: Optional[str] = None  # agent_review 门的输入产出物路径
     output: str = ""
 
     @field_validator("output_check", mode="before")
@@ -72,16 +74,18 @@ class PipelineStateConfig(BaseModel):
         return v
 
 
-class ReviewerFocus(BaseModel):
+class ReviewerDef(BaseModel):
     role: str
-    focus: str = ""
+    focus: str = ""  # deprecated: 迁移到 agent skill
 
 
 class ReviewGateDef(BaseModel):
     name: str
     description: str = ""
-    reviewers: list[ReviewerFocus] = []
-    checklist: list[str] = []
+    gate_type: str = "human_audit"  # "human_audit" | "agent_review"
+    reviewers: list[ReviewerDef] = []
+    checklist: list[str] = []  # deprecated: 人审门可保留用于 UI 展示，agent_review 门迁移到 skill
+    review_input: Optional[str] = None  # agent_review 门的输入产出物路径
 
 
 class PipelineDef(BaseModel):
@@ -102,7 +106,7 @@ class AgentConfig(BaseModel):
     output_dir: str = ""
     skills_dir: str = ""
     rag_dir: str = ""
-    review_gate: Optional[str | dict] = None
+    review_gate: Optional[str | dict] = None  # deprecated: pipeline.yaml 是评审门唯一真相源
     prompt_template: str = ""
     is_orchestrator: bool = False
 
@@ -137,10 +141,23 @@ class RagDoc(BaseModel):
 # ── 评审 ──────────────────────────────────────
 
 
+class AgentReviewResult(BaseModel):
+    """Agent 评审的结构化输出"""
+    reviewer_role: str
+    gate_name: str
+    verdict: str  # "approve" | "reject" | "conditional_approve"
+    summary: str
+    findings: list[dict] = []  # [{"item": "...", "severity": "critical|major|minor", "detail": "..."}]
+    recommendations: list[str] = []
+    conditions: list[str] = []  # conditional_approve 时必须的修改项
+
+
 class ReviewerDecision(BaseModel):
     reviewer_role: str
     approved: bool
     comments: str = ""
+    decision_type: str = "human"  # "human" | "agent"
+    review_result: Optional[AgentReviewResult] = None
     timestamp: str = ""
 
 

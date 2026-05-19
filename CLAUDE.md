@@ -21,6 +21,8 @@
 - **评审门审批仅在后台(Console)**，前台(Portal)只读
 - **前后台独立部署**：两个独立前端 + 两个独立API服务
 - **SKILL.md 必须有 YAML Frontmatter**：`name`, `description`, `allowed-tools` 为必填字段
+- **评审门分两种类型**：`human_audit`(人审，阻塞等人工操作) 和 `agent_review`(Agent评，系统自动派发)。Pipeline 只管结构(谁/何时/流向)，评审内容在 Agent skill 文件中
+- **Agent 评审是独立动作**：Agent 读取评审 skill → 产出结构化评审报告(含 YAML-in-HTML-comment verdict 块) → 系统解析
 - **Agent间不直接通信**：通过共享文件系统(`projects/<name>/`)读写协作，无消息传递
 - **本项目专注研发场景**，不做过度抽象。角色和流程可硬编码，通用多agent系统未来另开项目
 - **Console API 的 sys.path 注入**：`console/server/api/*.py` 通过 `sys.path.insert(0, src_path)` 导入 xy_core，因为 console 是独立服务不是 xy_core 子包
@@ -105,27 +107,30 @@ xy pipeline                         # 显示状态机图
 ## 8个Agent流水线
 
 ```
-presales → product → [PRD评审] → design → [设计评审] → architect → [架构评审]
-    → frontend + backend(并行) → qa → [用例评审] → qa(执行) → 交付
-                                   ↖ PM Agent 全程协调 ↗
+presales → [需求审核(人审)] → [需求可行性评审(Agent评)] → product → [PRD评审] → design → [设计评审]
+    → architect → [架构评审] → frontend + backend(并行) → qa → [用例评审] → qa(执行) → 交付
+                                    ↖ PM Agent 全程协调 ↗
 ```
 
-| Agent | 角色 | 输出目录 | 评审门 |
-|-------|------|---------|--------|
-| presales | 售前 | 01_requirements/ | 无 |
-| pm | 项目经理(编排) | — | 无(编排者) |
-| product | 产品 | 02_prd/ | prd_review |
-| design | 设计 | 03_design/ | design_review |
-| architect | 架构 | 04_architecture/ | arch_review |
-| frontend | 前端开发 | 05_frontend/ | 无 |
-| backend | 后端开发 | 06_backend/ | 无 |
-| qa | 测试 | 07_test/ | test_review |
+| Agent | 角色 | 输出目录 | 审核门 | 评审门 |
+|-------|------|---------|--------|--------|
+| presales | 售前 | 01_requirements/ | req_audit(人审) | req_feasibility(Agent评) |
+| pm | 项目经理(编排) | — | 无 | 无 |
+| product | 产品 | 02_prd/ | — | prd_review |
+| design | 设计 | 03_design/ | — | design_review |
+| architect | 架构 | 04_architecture/ | — | arch_review |
+| frontend | 前端开发 | 05_frontend/ | 无 | 无 |
+| backend | 后端开发 | 06_backend/ | 无 | 无 |
+| qa | 测试 | 07_test/ | — | test_review |
+
+**审核与评审**：审核 = 对应角色的人审Agent产出；评审 = 其他Agent专业评审。串行执行，先人审再Agent评。
 
 ## 种子用户
 
 | 用户名 | 密码 | 角色 |
 |--------|------|------|
 | admin | admin123 | 管理员 |
+| presales_user | 123456 | 售前顾问 |
 | product_user | 123456 | 产品经理 |
 | architect_user | 123456 | 架构师 |
 | design_user | 123456 | 设计师 |

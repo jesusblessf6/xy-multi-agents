@@ -142,3 +142,79 @@ def build_delegate_request(agent_config: AgentConfig, project_dir: Path,
         "context": context,
         "toolsets": sorted(toolsets),
     }
+
+
+def build_review_prompt(agent_config: AgentConfig, project_dir: Path,
+                        project_name: str, gate_name: str,
+                        review_input_path: str) -> str:
+    """构建 Agent 评审的执行 prompt
+
+    Agent 评审是一个独立动作：读取输入，应用评审 skill，产出结构化评审报告。
+    评审标准、输出格式等由 skill 文件定义，不在代码中硬编码。
+    """
+    parts: list[str] = []
+
+    # 1. 角色
+    parts.append(f"# 你是: {agent_config.display_name}\n")
+    parts.append(f"## 角色定义\n{agent_config.role}\n")
+
+    # 2. 评审上下文
+    parts.append("## 评审任务")
+    parts.append(f"你正在参与评审门 **{gate_name}**。")
+    parts.append(f"请根据你的专业领域，对以下输入进行评审。\n")
+
+    # 3. 评审输入
+    input_path = project_dir / review_input_path
+    if input_path.exists():
+        parts.append("## 评审输入")
+        parts.append(input_path.read_text())
+        parts.append("")
+    else:
+        parts.append(f"[警告: 评审输入文件不存在: {review_input_path}]\n")
+
+    # 4. Skills — 评审 skill 应在其中
+    summaries = get_skill_summaries(agent_config.name)
+    if summaries:
+        parts.append("## 你的可用技能 (Skills)")
+        parts.append("以下是你绑定的技能摘要。请读取对应的评审技能文件获取完整的评审标准、输出格式和产出要求。\n")
+        for s in summaries:
+            tools_str = ", ".join(s.allowed_tools) if s.allowed_tools else "无限制"
+            parts.append(f"- **{s.name}**: {s.description} (工具: {tools_str})")
+            parts.append(f"  完整内容: `{s.file_path}`")
+        parts.append("")
+
+    # 5. RAG 知识
+    rag_dir = AGENTS_DIR / agent_config.name / "rag"
+    if rag_dir.exists() and any(rag_dir.glob("*.md")):
+        parts.append("## 领域知识库")
+        parts.append(f"知识库目录: `{rag_dir}`")
+        parts.append("请按需读取该目录下的文档获取领域知识。\n")
+
+    # 6. 执行指令
+    parts.append("## 执行指令")
+    parts.append(f"请读取你的评审技能文件，按照其中定义的评审标准、输出格式完成评审。")
+    parts.append(f"将评审报告写入 `reviews/{gate_name}_{agent_config.name}.md`。")
+
+    return "\n".join(parts)
+
+
+def build_review_delegate_request(agent_config: AgentConfig, project_dir: Path,
+                                  project_name: str, gate_name: str,
+                                  review_input_path: str) -> dict:
+    """构建评审用的 Hermes delegate_task 请求对象"""
+    context = build_review_prompt(
+        agent_config, project_dir, project_name, gate_name, review_input_path,
+    )
+
+    summaries = get_skill_summaries(agent_config.name)
+    toolsets: set[str] = set()
+    for s in summaries:
+        toolsets.update(s.allowed_tools)
+    if not toolsets:
+        toolsets = {"file", "search"}
+
+    return {
+        "goal": f"参与评审门 {gate_name}，从{agent_config.display_name}角度评审 {review_input_path}",
+        "context": context,
+        "toolsets": sorted(toolsets),
+    }

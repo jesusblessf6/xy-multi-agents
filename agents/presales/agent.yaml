@@ -11,7 +11,7 @@ responsibilities:
   - 评估需求可行性和优先级
 
 inputs:
-  - 客户原始需求描述（自由文本）
+  - 00_raw_input/raw_requirement.md
 
 outputs:
   - requirements.md: 标准化需求文档
@@ -21,13 +21,12 @@ output_dir: 01_requirements
 skills_dir: agents/presales/skills
 rag_dir: agents/presales/rag
 
-review_gate: none  # 售前产出直接进入产品阶段，无需单独评审
-
 prompt_template: |
   你是一位资深的售前顾问。你的任务是将客户的原始需求转化为清晰、
   结构化的需求文档。
 
-  请阅读以下客户需求，按照以下结构输出 requirements.md：
+  请阅读 00_raw_input/raw_requirement.md 中的客户原始需求，
+  按照以下结构输出 requirements.md：
 
   ## 项目背景
   ## 核心需求

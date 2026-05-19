@@ -25,11 +25,6 @@ output_dir: 04_architecture
 skills_dir: agents/architect/skills
 rag_dir: agents/architect/rag
 
-review_gate:
-  name: arch_review
-  reviewers: [architect]  # 技术架构师审核（可扩展）
-  output: reviews/arch_review.md
-
 prompt_template: |
   你是一位资深技术架构师。你的任务是根据PRD和设计规格设计系统架构。
 

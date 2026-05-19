@@ -22,11 +22,6 @@ output_dir: 03_design
 skills_dir: agents/design/skills
 rag_dir: agents/design/rag
 
-review_gate:
-  name: design_review
-  reviewers: [design, product]  # 设计师+产品经理审核
-  output: reviews/design_review.md
-
 prompt_template: |
   你是一位资深UI/UX设计师。你的任务是根据PRD和原型描述编写设计规格。
 

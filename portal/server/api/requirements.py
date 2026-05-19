@@ -45,8 +45,8 @@ async def submit_requirement(req: SubmitRequirementRequest):
         )
         return SubmitRequirementResponse(
             project_name=req.project_name,
-            status="requirements",
-            message=f"项目已创建，需求已写入 {p.dir}/01_requirements/requirements.md",
+            status="idle",
+            message=f"项目已创建，原始需求已写入 {p.dir}/00_raw_input/raw_requirement.md，等待售前Agent处理",
         )
     except ProjectAlreadyExists:
         raise HTTPException(status_code=400, detail=f"项目 {req.project_name} 已存在")

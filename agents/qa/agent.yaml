@@ -27,11 +27,6 @@ output_dir: 07_test
 skills_dir: agents/qa/skills
 rag_dir: agents/qa/rag
 
-review_gate:
-  name: test_review
-  reviewers: [qa, product]  # 测试工程师+产品经理审核
-  output: reviews/test_review.md
-
 prompt_template: |
   你是一位资深测试工程师。你的任务是根据PRD、原型和API规范编写测试用例，并在开发完成后执行测试。
 

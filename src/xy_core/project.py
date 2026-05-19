@@ -56,19 +56,13 @@ class Project:
                                 client: str = "", description: str = "",
                                 priority: str = "normal", deadline: str = "",
                                 owner: str = "") -> "Project":
-        """创建项目并写入需求文档，直接推进到 requirements 状态"""
+        """创建项目并写入原始需求，项目停留在 idle 状态，等待售前 Agent 处理"""
         project = cls.create(name, client=client, description=description,
                              priority=priority, deadline=deadline, owner=owner)
 
-        req_dir = project.dir / "01_requirements"
-        req_dir.mkdir(exist_ok=True)
-        (req_dir / "requirements.md").write_text(requirement_text)
-
-        state = project.state
-        state.current_state = "requirements"
-        state.artifacts["requirements"].status = "ready"
-        state.artifacts["requirements"].produced_by = "presales"
-        project._save_state(state)
+        raw_dir = project.dir / "00_raw_input"
+        raw_dir.mkdir(exist_ok=True)
+        (raw_dir / "raw_requirement.md").write_text(requirement_text)
 
         return project
 

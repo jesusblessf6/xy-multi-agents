@@ -12,14 +12,16 @@ class StateMachine:
 
     - 节点 = 状态 (agent_execution / review_gate / parallel / terminal)
     - 边 = 条件转换 (artifacts_ready / review_approved / review_rejected)
-    - 评审门 = 中断点 (interrupt point)
+    - 评审门 = 中断点 (interrupt point)，仅 human_audit 门阻塞
     """
 
     def __init__(self, pipeline: PipelineDef | None = None):
         self._pipeline = pipeline or load_pipeline()
+        # 仅 human_audit 门是中断点（阻塞等待人工操作）
+        # agent_review 门不阻塞，系统自动派发
         self._interrupt_points: set[str] = {
             name for name, cfg in self._pipeline.states.items()
-            if cfg.type == "review_gate"
+            if cfg.type == "review_gate" and (cfg.gate_type or "human_audit") == "human_audit"
         }
 
     @property
@@ -61,12 +63,25 @@ class StateMachine:
         )
 
     def is_interrupt_point(self, state: str) -> bool:
-        """该状态是否为评审门（中断点）"""
+        """该状态是否为中断点（仅 human_audit 门）"""
         return state in self._interrupt_points
 
     def get_interrupt_points(self) -> list[str]:
-        """所有评审门状态"""
+        """所有中断点状态（human_audit 门）"""
         return sorted(self._interrupt_points)
+
+    def get_gate_type(self, state: str) -> Optional[str]:
+        """获取评审门类型: human_audit | agent_review | None"""
+        cfg = self.get_state_config(state)
+        if cfg.type == "review_gate":
+            return cfg.gate_type or "human_audit"
+        return None
+
+    def is_human_audit(self, state: str) -> bool:
+        return self.get_gate_type(state) == "human_audit"
+
+    def is_agent_review(self, state: str) -> bool:
+        return self.get_gate_type(state) == "agent_review"
 
     def get_parallel_agents(self, state: str) -> list[str]:
         """并行状态的Agent列表"""
@@ -81,6 +96,13 @@ class StateMachine:
         if cfg.type == "review_gate":
             return cfg.reviewers
         return []
+
+    def get_review_input(self, state: str) -> Optional[str]:
+        """获取Agent评审门的输入产出物路径"""
+        cfg = self.get_state_config(state)
+        if cfg.type == "review_gate":
+            return cfg.review_input
+        return None
 
     def get_output_check(self, state: str) -> list[str]:
         """该状态需要检查的产出物路径列表"""

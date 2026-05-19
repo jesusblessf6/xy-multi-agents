@@ -24,8 +24,6 @@ output_dir: 06_backend
 skills_dir: agents/backend/skills
 rag_dir: agents/backend/rag
 
-review_gate: none  # 后端产出由测试Agent验证
-
 prompt_template: |
   你是一位资深后端开发工程师。你的任务是根据架构设计和API规范实现后端代码。
 

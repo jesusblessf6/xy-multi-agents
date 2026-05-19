@@ -23,12 +23,17 @@ async def get_pipeline():
     # 附带评审门定义
     review_gates = {}
     for name, gate in pipeline.review_gates.items():
-        review_gates[name] = {
+        gate_info = {
             "name": gate.name,
             "description": gate.description,
-            "checklist": gate.checklist,
-            "reviewers": [{"role": r.role, "focus": r.focus} for r in gate.reviewers],
+            "gate_type": gate.gate_type,
+            "reviewers": [{"role": r.role} for r in gate.reviewers],
         }
+        if gate.checklist:
+            gate_info["checklist"] = gate.checklist
+        if gate.review_input:
+            gate_info["review_input"] = gate.review_input
+        review_gates[name] = gate_info
 
     return {
         "graph": graph,

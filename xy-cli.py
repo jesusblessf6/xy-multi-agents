@@ -46,8 +46,9 @@ def cmd_create(args):
                 owner=args.owner or "",
             )
             print(f"项目已创建: {p.dir}")
-            print(f"当前状态: requirements")
-            print(f"需求已写入: {p.dir}/01_requirements/requirements.md")
+            print(f"当前状态: idle")
+            print(f"原始需求已写入: {p.dir}/00_raw_input/raw_requirement.md")
+            print(f"下一步: 售前Agent处理原始需求，产出结构化 requirements.md")
         else:
             p = Project.create(
                 args.project_name,
@@ -57,7 +58,7 @@ def cmd_create(args):
             )
             print(f"项目已创建: {p.dir}")
             print(f"当前状态: idle")
-            print(f"下一步: 提交客户需求到 {p.dir}/01_requirements/requirements.md")
+            print(f"下一步: 提交客户需求到 {p.dir}/00_raw_input/raw_requirement.md")
     except FileExistsError as e:
         print(f"错误: {e}")
 
@@ -108,6 +109,14 @@ def cmd_advance(args):
     try:
         p = Project.load(args.project_name)
         sm = StateMachine()
+
+        # idle 状态推进前检查原始需求是否存在
+        if p.current_state == "idle":
+            raw_req = p.dir / "00_raw_input" / "raw_requirement.md"
+            if not raw_req.exists():
+                print(f"原始需求不存在，请先提交客户需求到 {raw_req}")
+                return
+
         check = check_artifacts_ready(p, sm)
 
         if not check["ready"]:

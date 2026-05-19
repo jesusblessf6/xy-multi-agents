@@ -22,11 +22,6 @@ output_dir: 02_prd
 skills_dir: agents/product/skills
 rag_dir: agents/product/rag
 
-review_gate:
-  name: prd_review
-  reviewers: [product, architect]  # 产品经理+架构师审核
-  output: reviews/prd_review.md
-
 prompt_template: |
   你是一位资深产品经理。你的任务是根据需求文档编写PRD和原型描述。
 
